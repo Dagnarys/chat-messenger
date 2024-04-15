@@ -1,3 +1,4 @@
+
 const ws = require('ws');
 
 const wss = new ws.Server({
@@ -9,18 +10,28 @@ wss.on('connection', function connection(ws) {
     ws.on('message', function (message) {
         message = JSON.parse(message)
         switch (message.event) {
-            case 'message':
-                broadcastMessage(message)
+            case 'file':
+                broadcastFile(message)
                 break;
             case 'connection':
-                broadcastMessage(message)
+                broadcastConnection(message)
                 break;
         }
     })
 })
 
-function broadcastMessage(message, id) {
+function broadcastFile(message) {
     wss.clients.forEach(client => {
-        client.send(JSON.stringify(message))
-    })
+        if (client.readyState === ws.OPEN) {
+            client.send(JSON.stringify(message));
+        }
+    });
+}
+
+function broadcastConnection(message) {
+    wss.clients.forEach((client ) => { // Provide type annotation for client
+        if (client.readyState === ws.OPEN) { // Ensure client is recognized as a WebSocket object
+            client.send(JSON.stringify(message));
+        }
+    });
 }
