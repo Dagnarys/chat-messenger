@@ -52,37 +52,37 @@ const WebSock = () => {
 
     };
 
-    // const sendFile = async () => {
-    //     if (file) {
-    //         console.log('Uploading file...');
-    //
-    //         const formData = new FormData();
-    //         formData.append('file', file);
-    //
-    //         try {
-    //             const result = await axios.post('https://httpbin.org/post', formData);
-    //
-    //             console.log(result.data);
-    //         } catch (error) {
-    //             console.error(error);
-    //         }
-    //         setValue('');
-    //     }
-    // };
-    const sendFile = async () => {
 
-        const message = {
-            username,
-
-            message: value,
-            id: Date.now(),
-            event: 'message'
+    const sendFile = () => {
+        if (file) {
+            console.log(file)
+            // Чтение содержимого файла
+            const reader = new FileReader();
+            reader.onload = () => {
+                // Отправка файла через вебсокет
+                const message = {
+                    username,
+                    file: reader.result, // Содержимое файла в формате base64 или ArrayBuffer
+                    fileName: file.name, // Имя файла
+                    fileType: file.type, // Тип файла
+                    fileSize: file.size, // Размер файла
+                    id: Date.now(),
+                    event: 'file'
+                };
+                socket.current.send(JSON.stringify(message));
+            };
+            reader.readAsDataURL(file); // Преобразование содержимого файла в base64
+            setFile(null); // Сброс выбранного файла
         }
-        socket.current.send(JSON.stringify(message));
-        setValue('')
-
-    }
-
+    };
+    const downloadFile = (fileName, fileData) => {
+        const blob = new Blob([fileData]);
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    };
     if (!connected) {
         return (
             <div className='chat_container'>
@@ -100,20 +100,31 @@ const WebSock = () => {
 
     return (
         <div className="chat_container">
-            <div className="messages">
+            <div className='chat_name'>
+                {username}
+            </div>
+            <div className="chat_messages">
                 {messages.map(mess => (
                     <div key={mess.id}>
                         {mess.event === 'connection' ? (
                             <div className="connection_message">
-                                            Пользователь {mess.username} подключился
-                                        </div>
-                                    ) : (
-                                        <div className="message">
-                                            {mess.username}. {mess.formData}
-                                        </div>
-                                    )}
+                                Пользователь {mess.username} подключился
+                            </div>
+                        ) : (
+                            <div className='message'>
+                                {mess.username}.{' '}
+                                {mess.file && (
+                                    <a
+                                        href='#'
+                                        onClick={() => downloadFile(mess.fileName, mess.file)}
+                                    >
+                                        {mess.fileName}
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     </div>
-                            ))}
+                ))}
             </div>
 
 
@@ -125,20 +136,19 @@ const WebSock = () => {
                         width={25}
                         height={25}
                         onClick={handleFileUploadClick}
-                        style={{ cursor: 'pointer' }}
+                        style={{cursor: 'pointer'}}
                     />
                     <input
                         value={value}
                         type="file"
                         ref={fileInputRef}
-                        style={{ display: 'none' }}
+                        style={{display: 'none'}}
                         onChange={handleFileChange}
                     />
                     <button className='chat_button' onClick={sendFile}>Отправить файл</button>
                 </div>
             </div>
-         </div>
-
+        </div>
 
 
     );
