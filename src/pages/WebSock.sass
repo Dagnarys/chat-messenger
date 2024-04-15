@@ -15,6 +15,15 @@ body
     background: #FFFFFF
     border-radius: 37px
     flex-direction: column
+    .chat_name
+      display: flex
+      width: 100%
+      justify-content: center
+      height: 54px
+      color: #55677D
+      font-weight: bold
+      padding: 6px 50px 4px
+      border-bottom: #DCE1E5 2px solid
     .chat_input
       display: flex
       width: 100%
@@ -56,21 +65,23 @@ body
         border: #DCE1E5 1px solid
         outline: none
 
-    .chat_send
-      display: flex
-      width: 100%
-      align-items: center
-      justify-content: space-around
-      flex-direction: row
-      border-top: #DCE1E5 1px solid
-      padding: 15px 100px
+  .chat_send
+    display: flex
+    width: 100%
+    align-items: center
+    justify-content: space-around
+    flex-direction: row
+    border-top: #DCE1E5 1px solid
+    padding: 15px 100px
 
-    .chat_messages
-      display: flex
-      justify-content: center
-      align-items: center
-      width: 100%
-      height: 100%
+  .chat_messages
+    display: flex
+    justify-content: start
+    color: #55677D
+    align-items: center
+    flex-direction: column
+    width: 100%
+    height: 100%
 
 
 
