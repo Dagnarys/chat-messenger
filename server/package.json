@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon websocket.js"
+    "start": "nodemon websocket.js",
+    "start1": "nodemon express.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +14,7 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "nodemon": "^3.1.0",
+    "swagger-ui-express": "^5.0.0",
     "ws": "^8.16.0"
   },
   "devDependencies": {
