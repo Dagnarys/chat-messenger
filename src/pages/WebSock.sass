@@ -18,12 +18,26 @@ body
     .chat_name
       display: flex
       width: 100%
-      justify-content: center
+      justify-content: space-around
+      align-items: center
       height: 54px
       color: #55677D
       font-weight: bold
       padding: 6px 50px 4px
       border-bottom: #DCE1E5 2px solid
+
+      .chat_button
+        align-items: center
+        display: flex
+        text-align: center
+        justify-content: center
+        width: 110px
+        height: 40px
+        border-radius: 4px
+        background: #E5EBF1
+        color: #55677D
+        border: none
+        outline: none
     .chat_input
       display: flex
       width: 100%
@@ -44,6 +58,7 @@ body
         border-radius: 4px
         background: #E5EBF1
         color: #55677D
+        font-weight: bold
         border: none
         outline: none
         &:active
