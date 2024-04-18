@@ -67,8 +67,9 @@ const WebSock = () => {
                     fileType: file.type, // Тип файла
                     fileSize: file.size, // Размер файла
                     id: Date.now(),
-                    event: 'file'
+                    event: 'sendFile'
                 };
+                console.log(message)
                 socket.current.send(JSON.stringify(message));
             };
             reader.readAsDataURL(file); // Преобразование содержимого файла в base64
@@ -96,12 +97,15 @@ const WebSock = () => {
                 </div>
             </div>
         )
+
     }
+
 
     return (
         <div className="chat_container">
             <div className='chat_name'>
                 {username}
+                <button className='chat_button'>Выйти</button>
             </div>
             <div className="chat_messages">
                 {messages.map(mess => (
