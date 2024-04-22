@@ -26,6 +26,7 @@ app.post('/sendFile', (req, res) => {
 app.get('/receiveFile', (req, res) => {
     // Здесь вы можете вернуть список доступных файлов, например, из базы данных или кэша
     const files = [];
+
     console.log(files)
     // Возвращаем файлы клиенту в формате JSON
     res.json(files);
