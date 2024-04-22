@@ -22,9 +22,10 @@ const WebSock = () => {
             const message = {
                 event: 'connection',
                 username,
-                id: Date.now()
+                time: Date.now()
             }
             socket.current.send(JSON.stringify(message))
+            console.log('Socket открыт')
         }
         socket.current.onmessage = (event) => {
             const message = JSON.parse(event.data)
@@ -53,9 +54,9 @@ const WebSock = () => {
     };
 
 
-    const sendFile = () => {
+    const receiveFile = () => {
         if (file) {
-            console.log(file)
+            console.log(file);
             // Чтение содержимого файла
             const reader = new FileReader();
             reader.onload = () => {
@@ -66,10 +67,11 @@ const WebSock = () => {
                     fileName: file.name, // Имя файла
                     fileType: file.type, // Тип файла
                     fileSize: file.size, // Размер файла
-                    id: Date.now(),
-                    event: 'sendFile'
+                    time: Date.now(),
+                    isError: false,
+                    event: 'receiveFile'
                 };
-                console.log(message)
+                console.log(message);
                 socket.current.send(JSON.stringify(message));
             };
             reader.readAsDataURL(file); // Преобразование содержимого файла в base64
@@ -84,6 +86,18 @@ const WebSock = () => {
         link.click();
         URL.revokeObjectURL(link.href);
     };
+
+    const handleLogout = () => {
+        // Очистка состояний и завершение соединения с WebSocket
+        setUsername('');
+        setMessages([]);
+        setConnected(false);
+        if (socket.current) {
+            socket.current.close();
+        }
+    };
+
+
     if (!connected) {
         return (
             <div className='chat_container'>
@@ -105,11 +119,11 @@ const WebSock = () => {
         <div className="chat_container">
             <div className='chat_name'>
                 {username}
-                <button className='chat_button'>Выйти</button>
+                <button className='chat_button' onClick={handleLogout}>Выйти</button>
             </div>
             <div className="chat_messages">
-                {messages.map(mess => (
-                    <div key={mess.id}>
+                {messages.map((mess,index) => (
+                    <div key={`${mess.time}-${index}`}>
                         {mess.event === 'connection' ? (
                             <div className="connection_message">
                                 Пользователь {mess.username} подключился
@@ -123,8 +137,11 @@ const WebSock = () => {
                                         onClick={() => downloadFile(mess.fileName, mess.file)}
                                     >
                                         {mess.fileName}
+
                                     </a>
+
                                 )}
+                                {mess.isError ? ' Ошибка!' : null}
                             </div>
                         )}
                     </div>
@@ -149,7 +166,7 @@ const WebSock = () => {
                         style={{display: 'none'}}
                         onChange={handleFileChange}
                     />
-                    <button className='chat_button' onClick={sendFile}>Отправить файл</button>
+                    <button className='chat_button' onClick={receiveFile}>Отправить файл</button>
                 </div>
             </div>
         </div>
