@@ -6,7 +6,7 @@
     "description": "API description"
   },
   "paths": {
-    "/sendFile": {
+    "/receiveFile": {
       "post": {
         "summary": "Send a file",
         "requestBody": {
@@ -31,8 +31,11 @@
                   "fileType": {
                     "type": "string"
                   },
-                  "id": {
-                    "type": "integer"
+                  "time": {
+                    "type": "string"
+                  },
+                  "isError": {
+                    "type": "boolean"
                   }
                 }
               }
@@ -45,16 +48,7 @@
           }
         }
       }
-    },
-    "/receiveFile": {
-      "get": {
-        "summary": "Receive files",
-        "responses": {
-          "200": {
-            "description": "List of available files"
-          }
-        }
-      }
     }
+
   }
 }
