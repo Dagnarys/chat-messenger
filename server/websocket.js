@@ -21,6 +21,16 @@ app.post('/receiveFile', (req, res) => {
     // Обработка сообщения и отправка его всем клиентам WebSocket
     broadcastMessage(fileData);
 });
+app.get('/sendFile', (req, res) => {
+    // Здесь получите список файлов из базы данных или кэша
+    const fileData = req.body;
+    console.log(fileData)
+
+    // Возвращаем файлы в формате JSON
+    res.json(fileData);
+    // Обработка сообщения и отправка его всем клиентам WebSocket
+    broadcastMessage(fileData);
+});
 
 app.listen(3000, () => {
     console.log('Server running on port 3000');
@@ -62,6 +72,7 @@ async function receiveFile(message) {
     try {
         // Отправляем POST запрос на адрес "http://localhost:3000/receiveFile" с данными сообщения
         await axios.post('http://localhost:3000/receiveFile', message);
+        //await axios.post('http://172.20.10.4/receiveFile', message);
         // Если необходимо, можете добавить вызов broadcastFile(message);
     } catch (error) {
         console.error('Error sending file:', error.message);
