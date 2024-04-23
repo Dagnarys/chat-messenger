@@ -17,6 +17,7 @@ const WebSock = () => {
     function connect() {
         socket.current = new WebSocket('ws://localhost:5000')
 
+
         socket.current.onopen = () => {
             setConnected(true)
             const message = {
@@ -65,11 +66,9 @@ const WebSock = () => {
                     username,
                     file: reader.result, // Содержимое файла в формате base64 или ArrayBuffer
                     fileName: file.name, // Имя файла
-                    fileType: file.type, // Тип файла
-                    fileSize: file.size, // Размер файла
                     time: Date.now(),
                     isError: false,
-                    event: 'receiveFile'
+                    event: 'sendFile'
                 };
                 console.log(message);
                 socket.current.send(JSON.stringify(message));
@@ -123,7 +122,7 @@ const WebSock = () => {
             </div>
             <div className="chat_messages">
                 {messages.map((mess,index) => (
-                    <div key={`${mess.time}-${index}`}>
+                    <div key={`${mess.time}`}>
                         {mess.event === 'connection' ? (
                             <div className="connection_message">
                                 Пользователь {mess.username} подключился
