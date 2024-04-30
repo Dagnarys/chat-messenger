@@ -68,7 +68,7 @@ const WebSock = () => {
                     fileName: file.name, // Имя файла
                     time: Date.now(),
                     isError: false,
-                    event: 'sendFile'
+                    event: 'receiveFile'
                 };
                 console.log(message);
                 socket.current.send(JSON.stringify(message));
@@ -122,25 +122,28 @@ const WebSock = () => {
             </div>
             <div className="chat_messages">
                 {messages.map((mess,index) => (
-                    <div key={`${mess.time}`}>
+                    <div key={`${mess.time}`} className={mess.username === username ?'send_message':'rec_message'}>
                         {mess.event === 'connection' ? (
                             <div className="connection_message">
                                 Пользователь {mess.username} подключился
                             </div>
                         ) : (
-                            <div className='message'>
+                            <div className="message">
                                 {mess.username}.{' '}
-                                {mess.file && (
-                                    <a
-                                        href='#'
-                                        onClick={() => downloadFile(mess.fileName, mess.file)}
-                                    >
-                                        {mess.fileName}
-
-                                    </a>
-
+                                {mess.isError ? (
+                                    'Ошибка!'
+                                ) : (
+                                    <>
+                                        {mess.file && (
+                                            <a
+                                                href='#'
+                                                onClick={() => downloadFile(mess.fileName, mess.file)}
+                                            >
+                                                {mess.fileName}
+                                            </a>
+                                        )}
+                                    </>
                                 )}
-                                {mess.isError ? ' Ошибка!' : null}
                             </div>
                         )}
                     </div>
