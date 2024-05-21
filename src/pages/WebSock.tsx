@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Icon20Attach } from '@vkontakte/icons';
-import Button from '../components/button/Button.tsx';
-import axios, {toFormData} from 'axios';
+import axios from 'axios';
 
 import './WebSock.sass';
 
@@ -10,35 +9,41 @@ const WebSock = () => {
     const [value, setValue] = useState('');
     const [file, setFile] = useState(null);
     const [username, setUsername] = useState('');
-    const socket = useRef();
+    const socket = useRef(null);
     const [connected, setConnected] = useState(false);
     const fileInputRef = useRef(null);
 
-    function connect() {
-        socket.current = new WebSocket('ws://localhost:5000')
-
+    const connect = () => {
+        socket.current = new WebSocket('ws://localhost:5000');
 
         socket.current.onopen = () => {
-            setConnected(true)
+            setConnected(true);
             const message = {
                 event: 'connection',
                 username,
                 time: Date.now()
-            }
-            socket.current.send(JSON.stringify(message))
-            console.log('Socket открыт')
-        }
+            };
+            socket.current.send(JSON.stringify(message));
+            console.log('Socket открыт');
+        };
+
         socket.current.onmessage = (event) => {
-            const message = JSON.parse(event.data)
-            setMessages(prev => [message, ...prev])
-        }
-        socket.current.onclose= () => {
-            console.log('Socket закрыт')
-        }
+            const message = JSON.parse(event.data);
+            if (message.event === 'receiveFile') {
+                receiveFile(message.file);
+            } else {
+                setMessages((prev) => [message, ...prev]);
+            }
+        };
+
+        socket.current.onclose = () => {
+            console.log('Socket закрыт');
+        };
+
         socket.current.onerror = () => {
-            console.log('Socket произошла ошибка')
-        }
-    }
+            console.log('Socket произошла ошибка');
+        };
+    };
 
     const handleFileUploadClick = () => {
         if (fileInputRef.current) {
@@ -46,37 +51,71 @@ const WebSock = () => {
         }
     };
 
-    const handleFileChange = e => {
+    const handleFileChange = (e) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
             setFile(file);
         }
-
     };
-
-
-    const receiveFile = () => {
+    const sendFile = async () => {
         if (file) {
-            console.log(file);
-            // Чтение содержимого файла
-            const reader = new FileReader();
-            reader.onload = () => {
-                // Отправка файла через вебсокет
-                const message = {
-                    username,
-                    file: reader.result, // Содержимое файла в формате base64 или ArrayBuffer
-                    fileName: file.name, // Имя файла
-                    time: Date.now(),
-                    isError: false,
-                    event: 'receiveFile'
+            try {
+                // Преобразование файла в base64 строку
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    const base64File = reader.result;
+
+                    // Отправка данных файла в JSON формате
+                    const jsonData = {
+                        username,
+                        file: base64File,
+                        fileName: file.name,
+                        time: Date.now(),
+
+
+                    };
+
+                    // Отправка JSON данных на сервер
+                    const response = await axios.post('http://172.20.10.2:8000/segmentation/', jsonData, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    // Отправка сообщения по WebSocket
+                    socket.current.send(JSON.stringify(jsonData));
+                    setFile(null); // Сброс файла после отправки
                 };
-                console.log(message);
-                socket.current.send(JSON.stringify(message));
-            };
-            reader.readAsDataURL(file); // Преобразование содержимого файла в base64
-            setFile(null); // Сброс выбранного файла
+            } catch (error) {
+                console.error('File upload failed:', error);
+                const errorMessage = {
+                    username,
+                    file: null,
+                    fileName: file.name,
+                    time: Date.now(),
+
+                };
+                socket.current.send(JSON.stringify(errorMessage));
+            }
         }
     };
+
+
+    const receiveFile = (responseData) => {
+        if (responseData) {
+            const message = {
+                username,
+                file: responseData, // Sодержимое файла в формате base64 или ArrayBuffer
+                fileName: file.name, // Имя файла
+                time: Date.now(),
+                isError: false,
+                event: 'receiveFile'
+            };
+            socket.current.send(JSON.stringify(message));
+        }
+    };
+
     const downloadFile = (fileName, fileData) => {
         const blob = new Blob([fileData]);
         const link = document.createElement('a');
@@ -87,7 +126,6 @@ const WebSock = () => {
     };
 
     const handleLogout = () => {
-        // Очистка состояний и завершение соединения с WebSocket
         setUsername('');
         setMessages([]);
         setConnected(false);
@@ -96,23 +134,21 @@ const WebSock = () => {
         }
     };
 
-
     if (!connected) {
         return (
             <div className='chat_container'>
                 <div className='chat_input'>
                     <input
                         value={username}
-                        onChange={e => setUsername(e.target.value)}
+                        onChange={(e) => setUsername(e.target.value)}
                         type="text"
-                        placeholder="Введите ваше имя"/>
+                        placeholder="Введите ваше имя"
+                    />
                     <button className='chat_button' onClick={connect}>Войти</button>
                 </div>
             </div>
-        )
-
+        );
     }
-
 
     return (
         <div className="chat_container">
@@ -121,8 +157,8 @@ const WebSock = () => {
                 <button className='chat_button' onClick={handleLogout}>Выйти</button>
             </div>
             <div className="chat_messages">
-                {messages.map((mess,index) => (
-                    <div key={`${mess.time}`} className={mess.username === username ?'send_message':'rec_message'}>
+                {messages.map((mess, index) => (
+                    <div key={`${mess.time}`} className={mess.username === username ? 'send_message' : 'rec_message'}>
                         {mess.event === 'connection' ? (
                             <div className="connection_message">
                                 Пользователь {mess.username} подключился
@@ -150,30 +186,25 @@ const WebSock = () => {
                 ))}
             </div>
 
-
             <div className="chat_input">
-
                 <div className="chat_send">
                     <Icon20Attach
                         fill={'3F8AE0'}
                         width={25}
                         height={25}
                         onClick={handleFileUploadClick}
-                        style={{cursor: 'pointer'}}
+                        style={{ cursor: 'pointer' }}
                     />
                     <input
-                        value={value}
                         type="file"
                         ref={fileInputRef}
-                        style={{display: 'none'}}
+                        style={{ display: 'none' }}
                         onChange={handleFileChange}
                     />
-                    <button className='chat_button' onClick={receiveFile}>Отправить файл</button>
+                    <button className='chat_button' onClick={sendFile}>Отправить файл</button>
                 </div>
             </div>
         </div>
-
-
     );
 };
 
