@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Icon20Attach } from '@vkontakte/icons';
 import axios from 'axios';
-
+import { v4 as uuidv4 } from 'uuid';
 import './WebSock.sass';
 
 const WebSock = () => {
@@ -70,29 +70,28 @@ const WebSock = () => {
                     const jsonData = {
                         username,
                         file: base64File,
-                        fileName: file.name,
+                        filename: file.name,
                         time: Date.now(),
 
 
                     };
+                    console.log(jsonData)
 
                     // Отправка JSON данных на сервер
-                    const response = await axios.post('http://172.20.10.2:8000/segmentation/', jsonData, {
+                    const response = await axios.post('http://172.20.10.2:8000/sendFile/', jsonData, {
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
 
-                    // Отправка сообщения по WebSocket
-                    socket.current.send(JSON.stringify(jsonData));
-                    setFile(null); // Сброс файла после отправки
+
                 };
             } catch (error) {
                 console.error('File upload failed:', error);
                 const errorMessage = {
                     username,
                     file: null,
-                    fileName: file.name,
+                    filename: file.name,
                     time: Date.now(),
 
                 };
@@ -104,23 +103,32 @@ const WebSock = () => {
 
     const receiveFile = (responseData) => {
         if (responseData) {
-            const message = {
-                username,
-                file: responseData, // Sодержимое файла в формате base64 или ArrayBuffer
-                fileName: file.name, // Имя файла
-                time: Date.now(),
-                isError: false,
-                event: 'receiveFile'
-            };
-            socket.current.send(JSON.stringify(message));
+
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                    username,
+                    file: responseData, // File content in base64 or ArrayBuffer format
+                    filename: file.name, // File name
+                    time: Date.now(),
+                    isError: false,
+                    event: 'receiveFile'
+                }
+            ]);
         }
+        else
+        {
+            console.log('error receive')
+        }
+
     };
 
-    const downloadFile = (fileName, fileData) => {
+
+    const downloadFile = (filename, fileData) => {
         const blob = new Blob([fileData]);
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
-        link.download = fileName;
+        link.download = filename;
         link.click();
         URL.revokeObjectURL(link.href);
     };
@@ -158,7 +166,8 @@ const WebSock = () => {
             </div>
             <div className="chat_messages">
                 {messages.map((mess, index) => (
-                    <div key={`${mess.time}`} className={mess.username === username ? 'send_message' : 'rec_message'}>
+
+                    <div key={`${mess.username}-${mess.time}-${index}`} className={mess.username === username ? 'send_message' : 'rec_message'}>
                         {mess.event === 'connection' ? (
                             <div className="connection_message">
                                 Пользователь {mess.username} подключился
@@ -173,9 +182,9 @@ const WebSock = () => {
                                         {mess.file && (
                                             <a
                                                 href='#'
-                                                onClick={() => downloadFile(mess.fileName, mess.file)}
+                                                onClick={() => downloadFile(mess.filename, mess.file)}
                                             >
-                                                {mess.fileName}
+                                                {mess.filename}
                                             </a>
                                         )}
                                     </>
