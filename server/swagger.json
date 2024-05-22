@@ -22,11 +22,11 @@
                   "file": {
                     "type": "string"
                   },
-                  "fileName": {
+                  "filename": {
                     "type": "string"
                   },
                   "time": {
-                    "type": "string"
+                    "type": "integer"
                   },
                   "isError": {
                     "type": "boolean"
